@@ -23,12 +23,12 @@ function initRedis() {
     redis = new Redis({ url, token });
     defaultRateLimiter = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow({ max: 60, window: '60s' }),
+      limiter: Ratelimit.slidingWindow(60, '60 s'),
       prefix: 'ratelimit:default',
     });
     strictRateLimiter = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow({ max: 5, window: '1h' }),
+      limiter: Ratelimit.slidingWindow(5, '1 h'),
       prefix: 'ratelimit:strict',
     });
   }
