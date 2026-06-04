@@ -121,10 +121,14 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     ? Math.floor((Date.now() - lastActiveAt.getTime()) / (1000 * 60 * 60 * 24))
     : 999;
 
-  const lastEvent = events[0];
+  // Normalize event shape to avoid `never[]` inference.
+  const typedEvents2 = events as Array<{ event_type?: string; properties?: { question?: string; context?: string } }>; // runtime-safe
+
+  const lastEvent = typedEvents2[0];
   const lastQuestion = lastEvent?.properties?.question || null;
-  const memoryEvents = events.filter(e => e.event_type === 'memory_update');
+  const memoryEvents = typedEvents2.filter(e => e.event_type === 'memory_update');
   const lastMemory = memoryEvents[0]?.properties?.context || null;
+
 
   const dominantIntent = calculateDominantIntent(readings, lastQuestion);
   const engagementLevel = calculateEngagementLevel(readingsCount, daysSinceLastActive, sessionsCount);
