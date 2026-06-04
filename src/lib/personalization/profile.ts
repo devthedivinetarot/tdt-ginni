@@ -100,8 +100,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   const payments = paymentsData.data || [];
 
   const readingsCount = readings.length;
-  const sessionsCount = events.filter(e => e.event_type === 'session_start').length;
+  // Supabase client typing can degrade to `never[]` in this repo; normalize to runtime shape.
+  const typedEvents = events as Array<{ event_type?: string }>;
+  const sessionsCount = typedEvents.filter(e => e.event_type === 'session_start').length;
   const totalSpent = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
 
   const lastActiveAt = userData.last_active_at 
     ? new Date(userData.last_active_at) 
