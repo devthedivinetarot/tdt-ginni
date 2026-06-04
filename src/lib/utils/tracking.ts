@@ -48,7 +48,7 @@ export async function trackEvent(event: TrackingEvent): Promise<boolean> {
   }
 
   try {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('events')
       .insert({
         user_id: event.userId || null,

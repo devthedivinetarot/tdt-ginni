@@ -33,13 +33,21 @@ export async function verifySubscriptionStatus(userId: string): Promise<Subscrip
     }
 
     // Supabase typing may infer `never` for selected columns in some setups.
-    // Use explicit runtime-safe narrowing instead of relying on TS inference.
-    const plan = (user as any).plan === 'premium' ? 'premium' : 'free';
-    const status = (user.subscription_status || 'inactive') as 
+    // Cast the row to an explicit shape to avoid `never` propagation.
+    const u = user as any as {
+      plan?: 'free' | 'premium' | null;
+      subscription_status?: 'active' | 'inactive' | 'cancelled' | 'past_due' | null;
+      subscription_end_date?: string | null;
+      subscription_id?: string | null;
+      payment_provider?: string | null;
+    };
+
+    const plan = u.plan === 'premium' ? 'premium' : 'free';
+    const status = (u.subscription_status || 'inactive') as
       | 'active' | 'inactive' | 'cancelled' | 'past_due' | null;
-    const expiryDate = user.subscription_end_date || null;
-    const subscriptionId = user.subscription_id || null;
-    const paymentProvider = user.payment_provider || null;
+    const expiryDate = u.subscription_end_date || null;
+    const subscriptionId = u.subscription_id || null;
+    const paymentProvider = u.payment_provider || null;
 
     // Check if subscription is active
     const isValid = 
@@ -91,14 +99,16 @@ export async function getSubscriptionDetails(userId: string) {
       return null;
     }
 
+    const u = user as any;
+
     return {
-      plan: user.plan,
-      status: user.subscription_status,
-      expiryDate: user.subscription_end_date,
-      subscriptionId: user.subscription_id,
-      paymentProvider: user.payment_provider,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
+      plan: u.plan,
+      status: u.subscription_status,
+      expiryDate: u.subscription_end_date,
+      subscriptionId: u.subscription_id,
+      paymentProvider: u.payment_provider,
+      createdAt: u.created_at,
+      updatedAt: u.updated_at,
     };
   } catch (error) {
     console.error('[getSubscriptionDetails] Error:', error);

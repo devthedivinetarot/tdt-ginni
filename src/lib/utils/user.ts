@@ -31,17 +31,19 @@ export async function ensureUser(): Promise<string> {
   }
   
   try {
-    const { data: existing } = await supabase
+    const client = supabase as any;
+
+    const { data: existing } = await client
       .from('users')
       .select('id')
       .eq('anonymous_id', userId)
       .single();
     
     if (existing) {
-      return existing.id;
+      return (existing as any).id;
     }
     
-    const { data: newUser, error } = await supabase
+    const { data: newUser, error } = await client
       .from('users')
       .insert({
         anonymous_id: userId,
@@ -53,7 +55,7 @@ export async function ensureUser(): Promise<string> {
       .single();
     
     if (error) throw error;
-    return newUser?.id || userId;
+    return (newUser as any)?.id || userId;
   } catch (err) {
     console.error('[Ensure User Error]', err);
     return userId;
