@@ -102,12 +102,15 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   const events = eventsData.data || [];
   const payments = paymentsData.data || [];
 
-  const readingsCount = readings.length;
-  // Supabase client typing can degrade to `never[]` in this repo; normalize to runtime shape.
-  const typedEvents = events as Array<{ event_type?: string }>;
-  const sessionsCount = typedEvents.filter(e => e.event_type === 'session_start').length;
+  // Normalize shapes to avoid `never[]` inference from Supabase typing in this repo.
+  const typedReadings = readings as Array<{ type?: string; topic?: string; created_at?: string }>;
+  const typedEvents = events as Array<{ event_type?: string; properties?: { question?: string; context?: string } }>;
   const typedPayments = payments as Array<{ amount?: number }>;
+
+  const readingsCount = typedReadings.length;
+  const sessionsCount = typedEvents.filter(e => e.event_type === 'session_start').length;
   const totalSpent = typedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
 
 
 
@@ -135,11 +138,12 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   const conversionStage = calculateConversionStage(readingsCount, sessionsCount, totalSpent, daysSinceLastActive);
   const isHighIntent = detectHighIntent(events, readings, daysSinceLastActive);
 
-  const readingHistory = readings.map(r => ({
-    type: r.type,
-    topic: r.topic,
-    timestamp: new Date(r.created_at),
+  const readingHistory = typedReadings.map(r => ({
+    type: r.type || '',
+    topic: r.topic || '',
+    timestamp: new Date(r.created_at || new Date().toISOString()),
   }));
+
 
   const profile: UserProfile = {
     userId,
