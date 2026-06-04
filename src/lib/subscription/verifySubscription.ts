@@ -32,7 +32,9 @@ export async function verifySubscriptionStatus(userId: string): Promise<Subscrip
       };
     }
 
-    const plan = (user.plan || 'free') as 'free' | 'premium';
+    // Supabase typing may infer `never` for selected columns in some setups.
+    // Use explicit runtime-safe narrowing instead of relying on TS inference.
+    const plan = (user as any).plan === 'premium' ? 'premium' : 'free';
     const status = (user.subscription_status || 'inactive') as 
       | 'active' | 'inactive' | 'cancelled' | 'past_due' | null;
     const expiryDate = user.subscription_end_date || null;

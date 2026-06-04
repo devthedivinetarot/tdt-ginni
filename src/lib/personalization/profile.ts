@@ -279,10 +279,14 @@ export function getProfileSync(userId: string): UserProfile | null {
 }
 
 export async function updateUserActivity(userId: string): Promise<void> {
-  await supabase
+  // Avoid Supabase typing degrading to `never` in this repo.
+  const client: any = supabase;
+
+  await client
     .from('users')
     .update({ last_active_at: new Date().toISOString() })
     .eq('id', userId);
 
   invalidateCache(userId);
 }
+

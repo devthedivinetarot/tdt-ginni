@@ -83,8 +83,11 @@ export async function verifySubscriptionPayment(
 export async function createRazorpaySubscriptionOptions(userId: string): Promise<RazorpaySubscriptionOptions> {
   try {
     const subscription = await createRazorpaySubscription(userId);
-    
-    const { data: user, error } = await supabase
+
+    // Avoid Supabase typing degrading to `never` in this repo.
+    const client: any = supabase;
+
+    const { data: user, error } = await client
       .from('users')
       .select('name, email, phone')
       .eq('id', userId)
@@ -93,6 +96,8 @@ export async function createRazorpaySubscriptionOptions(userId: string): Promise
     if (error) {
       console.error('[createRazorpaySubscriptionOptions] User fetch error:', error);
     }
+
+    const typedUser = user as any;
 
     return {
       key: subscription.key,
@@ -103,9 +108,9 @@ export async function createRazorpaySubscriptionOptions(userId: string): Promise
         console.log('[createRazorpaySubscriptionOptions] Payment response:', response);
       },
       prefill: {
-        name: user?.name || 'User',
-        email: user?.email || '',
-        contact: user?.phone || '',
+        name: typedUser?.name || 'User',
+        email: typedUser?.email || '',
+        contact: typedUser?.phone || '',
       },
       theme: {
         color: '#FFD700',
@@ -116,6 +121,7 @@ export async function createRazorpaySubscriptionOptions(userId: string): Promise
         },
       },
     };
+
   } catch (error) {
     console.error('[createRazorpaySubscriptionOptions] Error:', error);
     throw error;
