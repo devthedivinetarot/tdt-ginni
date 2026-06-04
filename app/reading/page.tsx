@@ -7,6 +7,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { useDailyMessageLimit } from '@/hooks/useDailyMessageLimit';
 import PremiumModal from '@/components/subscription/PremiumModal';
 import { logEvent } from '@/lib/utils/tracking';
+import GinniChat from '@/components/GinniChat';
 
 export default function ReadingPage() {
   const { user, isLoading: userLoading } = useUser();
@@ -295,6 +296,9 @@ export default function ReadingPage() {
         triggerSource="paywall"
         onPaymentSuccess={handlePaymentSuccess}
       />
+
+      {/* Floating chatbot widget */}
+      <GinniChat />
     </>
   );
 }
