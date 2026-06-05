@@ -138,6 +138,7 @@ export async function middleware(request: NextRequest) {
       `object-src 'none'`,
       `base-uri 'self'`,
       `form-action 'self'`,
+      `frame-ancestors ${process.env.NEXT_PUBLIC_FRAME_ANCESTORS || "'self' *"}`,
       "upgrade-insecure-requests",
     ].join('; ');
 
@@ -148,7 +149,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  response.headers.set('X-Frame-Options', 'DENY');
+
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');

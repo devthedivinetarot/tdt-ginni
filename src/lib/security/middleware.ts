@@ -147,7 +147,7 @@ export const securityHeadersMiddleware: NextMiddleware = async (req: NextRequest
 
   // Content-Security-Policy is enforced by the root-level Next.js middleware.ts.
   // Keeping CSP here can cause conflicts / mismatched nonces and block inline scripts.
-  response.headers.set('X-Frame-Options', 'DENY');
+
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
