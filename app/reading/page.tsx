@@ -32,6 +32,7 @@ export default function ReadingPage() {
   const [initError, setInitError] = useState<string | null>(null);
   const [initTimedOut, setInitTimedOut] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [iframeSrc, setIframeSrc] = useState<string>('');
 
   const isLoading = userLoading;
 
@@ -184,8 +185,38 @@ export default function ReadingPage() {
     if (loaded) setInitError(null);
   }, [loaded]);
 
+  // ── Defer iframe loading until the main page is interactive ──────────
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (iframeSrc) return;
+
+
+    const buildIframeQuery = () => (isPremium ? '?plan=premium' : '');
+
+    const defer = () => {
+      // Keep it browser-friendly; avoid blocking render.
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => {
+          setIframeSrc(buildIframeQuery());
+        });
+        return;
+      }
+      window.setTimeout(() => setIframeSrc(buildIframeQuery()), 0);
+    };
+
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      defer();
+    } else {
+      const onReady = () => defer();
+      document.addEventListener('DOMContentLoaded', onReady, { once: true });
+    }
+  }, [isPremium, iframeSrc]);
+
+
+
 
   // ── Render ────────────────────────────────────────────────────────────
+
 
   return (
     <>
@@ -315,10 +346,33 @@ export default function ReadingPage() {
 
             {/* Reading iframe */}
             <div className="flex-1 flex items-center justify-center">
-              <div className="w-[80vw] h-[80vh]">
+              <div
+                className="relative mx-auto w-[80vw] max-w-[80vw] sm:w-[95vw] sm:max-w-[95vw]"
+                style={{
+                  aspectRatio: '16 / 9',
+                  maxHeight: '80vh',
+                }}
+              >
+                {/* Loading spinner / skeleton */}
+                {!loaded && (
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 z-10 flex items-center justify-center bg-black/0"
+                    style={{
+                      borderRadius: 'inherit',
+                    }}
+                  >
+                    <div className="w-14 h-14 rounded-full border-4 border-[#C9A962]/30 border-t-[#C9A962] animate-spin" />
+                  </div>
+                )}
+
                 <iframe
                   ref={iframeRef}
-                  src={`https://ginni-ki-baatein-buddy.lovable.app${isPremium ? '?plan=premium' : ''}`}
+                  src={
+                    iframeSrc
+                      ? `https://ginni-ki-baatein-buddy.lovable.app${iframeSrc}`
+                      : undefined
+                  }
                   width="100%"
                   height="100%"
                   className={`border-none transition-all duration-500 ${loaded ? 'opacity-100' : 'opacity-0'} ${iframeBlocked ? 'pointer-events-none opacity-40' : ''}`}
@@ -330,7 +384,7 @@ export default function ReadingPage() {
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                   title="Ginni AI Spiritual Reading"
                   referrerPolicy="no-referrer"
-                  loading="eager"
+                  loading="lazy"
                 />
               </div>
             </div>
