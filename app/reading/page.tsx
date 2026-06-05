@@ -193,7 +193,7 @@ export default function ReadingPage() {
 
     const buildIframeQuery = () => (isPremium ? '?plan=premium' : '');
 
-    const defer = () => {
+const defer = () => {
       // Keep it browser-friendly; avoid blocking render.
       if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(() => {
@@ -201,7 +201,13 @@ export default function ReadingPage() {
         });
         return;
       }
-      window.setTimeout(() => setIframeSrc(buildIframeQuery()), 0);
+
+      // In some Next.js builds TypeScript can narrow setTimeout oddly (e.g. `never`).
+      // Use globalThis to keep it type-safe.
+      (globalThis as typeof globalThis & { setTimeout: typeof setTimeout }).setTimeout(
+        () => setIframeSrc(buildIframeQuery()),
+        0,
+      );
     };
 
     if (document.readyState === 'interactive' || document.readyState === 'complete') {
