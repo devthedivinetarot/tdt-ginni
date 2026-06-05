@@ -75,20 +75,6 @@ export function useUser() {
           return;
         }
 
-        const withTimeout = async <T,>(p: Promise<T>, ms: number): Promise<T> => {
-          let t: ReturnType<typeof setTimeout> | null = null;
-          try {
-            return await Promise.race([
-              p,
-              new Promise<T>((_, reject) => {
-                t = setTimeout(() => reject(new Error(`Supabase request timed out after ${ms}ms`)), ms);
-              }),
-            ]);
-          } finally {
-            if (t) clearTimeout(t);
-          }
-        };
-
         const { data: profile, error: profileError } = await withTimeout(
           supabase
             .from('users')
