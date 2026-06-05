@@ -26,9 +26,27 @@ export function useUser() {
     const fetchUser = async () => {
       setIsLoading(true);
 
-       try {
-         // Get auth user
-         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      try {
+        // Get auth user (guard against long hangs)
+        const withTimeout = async <T,>(p: Promise<T>, ms: number): Promise<T> => {
+          let t: ReturnType<typeof setTimeout> | null = null;
+          try {
+            return await Promise.race([
+              p,
+              new Promise<T>((_, reject) => {
+                t = setTimeout(() => reject(new Error(`Supabase request timed out after ${ms}ms`)), ms);
+              }),
+            ]);
+          } finally {
+            if (t) clearTimeout(t);
+          }
+        };
+
+        const { data: { user: authUser }, error: authError } = await withTimeout(
+          supabase.auth.getUser(),
+          8000
+        );
+
 
         if (authError || !authUser) {
           // Not authenticated - use anonymous ID
@@ -57,11 +75,29 @@ export function useUser() {
           return;
         }
 
-        const { data: profile, error: profileError } = await supabase
-          .from('users')
-          .select('id, phone, email, anonymous_id')
-          .eq('id', authUser.id)
-          .single();
+        const withTimeout = async <T,>(p: Promise<T>, ms: number): Promise<T> => {
+          let t: ReturnType<typeof setTimeout> | null = null;
+          try {
+            return await Promise.race([
+              p,
+              new Promise<T>((_, reject) => {
+                t = setTimeout(() => reject(new Error(`Supabase request timed out after ${ms}ms`)), ms);
+              }),
+            ]);
+          } finally {
+            if (t) clearTimeout(t);
+          }
+        };
+
+        const { data: profile, error: profileError } = await withTimeout(
+          supabase
+            .from('users')
+            .select('id, phone, email, anonymous_id')
+            .eq('id', authUser.id)
+            .single(),
+          8000
+        );
+
 
         if (profileError && profileError.code !== 'PGRST116') {
           console.error('[useUser] Profile fetch error:', profileError);

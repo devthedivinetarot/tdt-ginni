@@ -29,9 +29,13 @@ export default function ReadingPage() {
   const [loaded, setLoaded] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [iframeBlocked, setIframeBlocked] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [initTimedOut, setInitTimedOut] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const isLoading = userLoading;
+
+
 
   // ── postMessage helpers ───────────────────────────────────────────────
 
@@ -160,11 +164,33 @@ export default function ReadingPage() {
     }
   }, []);
 
+  // ── init timeout for graceful fallback ─────────────────────────────
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (loaded) return;
+
+    const timer = window.setTimeout(() => {
+      setInitTimedOut(true);
+      setInitError('Connection temporary unavailable. Please refresh or try again later.');
+    }, 12000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loaded]);
+
+  useEffect(() => {
+    if (loaded) setInitError(null);
+  }, [loaded]);
+
+
   // ── Render ────────────────────────────────────────────────────────────
 
   return (
     <>
       <main className="flex-1 flex flex-col overflow-hidden bg-[#0B0B0F] relative">
+
         {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-0 w-full h-full opacity-[0.03]">
@@ -174,20 +200,48 @@ export default function ReadingPage() {
           </div>
         </div>
 
-        {/* Loading skeleton */}
+        {/* Loading skeleton / error fallback */}
         {!loaded && (
-          <div className="flex-1 flex items-center justify-center relative z-10">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border-4 border-[#C9A962]/30 border-t-[#C9A962] mb-4 animate-spin" />
-              <p className="text-[#C9A962] text-sm font-medium">Connecting to your reader...</p>
-              {!isLoading && !isPremium && (
-                <p className="text-[#A1A1AA] text-xs mt-2">
-                  You have {remaining} free reading{remaining !== 1 ? 's' : ''} today
-                </p>
+          <div className="flex-1 flex items-center justify-center relative z-10 p-4">
+            <div className="text-center max-w-md">
+              {!initError ? (
+                <>
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border-4 border-[#C9A962]/30 border-t-[#C9A962] mb-4 animate-spin" />
+                  <p className="text-[#C9A962] text-sm font-medium">Connecting to your reader...</p>
+                  {!isLoading && !isPremium && (
+                    <p className="text-[#A1A1AA] text-xs mt-2">
+                      You have {remaining} free reading{remaining !== 1 ? 's' : ''} today
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/30 flex items-center justify-center">
+                    <svg className="w-7 h-7 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-white text-sm font-semibold">{initError}</p>
+                  <p className="text-[#A1A1AA] text-xs mt-2">
+                    If this keeps happening, check your internet connection and try again.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setInitError(null);
+                      setInitTimedOut(false);
+                      setLoaded(false);
+                      window.location.reload();
+                    }}
+                    className="mt-5 w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FFD700] to-[#FFC400] text-black font-bold text-sm hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+                  >
+                    Refresh
+                  </button>
+                </>
               )}
             </div>
           </div>
         )}
+
 
         {/* iframe + paywall overlay */}
         <AnimatePresence>
