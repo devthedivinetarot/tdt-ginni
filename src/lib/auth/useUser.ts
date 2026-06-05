@@ -75,7 +75,7 @@ export function useUser() {
           return;
         }
 
-        const { data: profile, error: profileError } = await withTimeout(
+        const profileResult = await withTimeout(
           supabase
             .from('users')
             .select('id, phone, email, anonymous_id')
@@ -83,6 +83,11 @@ export function useUser() {
             .single(),
           8000
         );
+
+        const { data: profile, error: profileError } = profileResult as unknown as {
+          data: ExtendedUser | null;
+          error: { code?: string } | null;
+        };
 
 
         if (profileError && profileError.code !== 'PGRST116') {
