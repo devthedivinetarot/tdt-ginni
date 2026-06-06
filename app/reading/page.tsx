@@ -34,6 +34,13 @@ export default function ReadingPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeSrc, setIframeSrc] = useState<string>('');
 
+  // Prevent postMessage loops by only handling messages from the embedded iframe
+  // and by gating handshake responses.
+  const iframeWindowRef = useRef<Window | null>(null);
+  const didSendSubscriptionStateRef = useRef(false);
+  const lastSubscriptionModeRef = useRef<'premium' | 'free' | null>(null);
+
+
   const isLoading = userLoading;
 
   const showIframe = true;
@@ -44,11 +51,19 @@ export default function ReadingPage() {
     if (!iframeRef.current?.contentWindow) return;
     try {
       iframeRef.current.contentWindow.postMessage(
-        { type: 'SUBSCRIPTION_STATUS', plan: isPremium ? 'premium' : 'free', isPremium, canSendMessage: canSendMsg },
+        {
+          type: 'SUBSCRIPTION_STATUS',
+          plan: isPremium ? 'premium' : 'free',
+          isPremium,
+          canSendMessage: canSendMsg,
+        },
         '*',
       );
-    } catch { /* cross-origin expected */ }
+    } catch {
+      /* cross-origin expected */
+    }
   }, [isPremium, canSendMsg]);
+
 
   const sendUnlockToIframe = useCallback(() => {
     if (!iframeRef.current?.contentWindow) return;
@@ -91,21 +106,48 @@ export default function ReadingPage() {
   // ── useEffect: cross-origin message handler ────────────────────────────
 
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data?.type === 'GINNI_MESSAGE_SENT' && !isPremium) {
-        await handleMessageSent();
+    const handleMessage = (event: MessageEvent) => {
+
+
+      // Only accept messages originating from our embedded iframe.
+      const expectedIframeOriginA = 'https://tdt-v1.vercel.app';
+      const expectedIframeOriginB = 'https://ginni-ki-baatein-buddy.lovable.app';
+      const allowedOrigin = event.origin === expectedIframeOriginA || event.origin === expectedIframeOriginB;
+      if (!allowedOrigin) return;
+
+      const iframeWindow = iframeRef.current?.contentWindow;
+      if (iframeWindow && event.source !== iframeWindow) return;
+
+      const msgType = event.data?.type;
+      if (msgType === 'GINNI_MESSAGE_SENT' && !isPremium) {
+        // fire-and-forget; avoid making the message handler async
+        void handleMessageSent();
+        return;
       }
-      if (event.data?.type === 'INITIATE_UPGRADE') {
+
+
+      if (msgType === 'INITIATE_UPGRADE') {
         setShowUpgradeModal(true);
         logEvent('upgrade_requested', { source: 'iframe', userId });
+        return;
       }
-      if (event.data?.type === 'GINNI_READY') {
-        sendSubscriptionState();
+
+      if (msgType === 'GINNI_READY') {
+        // Gate subscription state sending to avoid circular READY<->STATUS loops.
+        const desiredMode: 'premium' | 'free' = isPremium ? 'premium' : 'free';
+        if (lastSubscriptionModeRef.current !== desiredMode || !didSendSubscriptionStateRef.current) {
+          didSendSubscriptionStateRef.current = true;
+          lastSubscriptionModeRef.current = desiredMode;
+          sendSubscriptionState();
+        }
+        return;
       }
     };
+
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [isPremium, userId, sendSubscriptionState]);
+
 
   // ── useEffect: send subscription state when ready ──────────────────────
 
