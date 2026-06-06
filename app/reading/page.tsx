@@ -8,6 +8,7 @@ export default function ReadingPage() {
       <main className="min-h-[100vh] flex">
         {/* Centered 80% viewport iframe */}
         <section className="w-[80vw] h-[80vh] max-w-5xl mx-auto my-auto">
+
           <iframe
             src={READING_URL}
             title="Tarot Reading Buddy"
