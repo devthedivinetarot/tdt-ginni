@@ -6,7 +6,8 @@ export default function ReadingPage() {
   return (
     <div className="bg-[#0a0a0a] text-white">
       {/* Extend section above footer: occupy ~80% of screen height */}
-      <main className="h-[80vh] w-full flex flex-col items-center justify-center relative bg-[#0a0a0a]">
+      <main className="h-[80vh] w-full flex flex-col items-center justify-center relative bg-[#0a0a0a] p-0 m-0">
+
 
         {/* Premium "Back to Home" (top-left, above iframe) */}
         <Link
