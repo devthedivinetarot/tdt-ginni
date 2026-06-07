@@ -1,448 +1,168 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-type BookStatus = 'Currently Reading' | 'Up Next' | 'Finished';
-
-type Book = {
-  id: string;
-  title: string;
-  author: string;
-  coverUrl: string;
-  status: BookStatus;
-  progress?: number; // 0..100 for Currently Reading
-  rating: number; // out of 10
-  synopsis: string;
-  takeaways: string[];
-};
-
-type TabKey = 'All' | BookStatus;
-
-const booksSeed: Book[] = [
-  {
-    id: 'b1',
-    title: 'The Art of Quiet Mind',
-    author: 'A. L. Mercer',
-    coverUrl:
-      'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=70',
-    status: 'Currently Reading',
-    progress: 65,
-    rating: 8.5,
-    synopsis:
-      'A practice-forward meditation on attention: how to notice thought patterns without becoming them—and return to the page with steadier clarity.',
-    takeaways: [
-      'Attention isn’t a talent; it’s a habit you can train.',
-      'Clarity arrives after you stop bargaining with distraction.',
-      'Small daily resets beat dramatic reinventions.'
-    ],
-  },
-  {
-    id: 'b2',
-    title: 'Maps for the Inner Roads',
-    author: 'Nora Kestrel',
-    coverUrl:
-      'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=70',
-    status: 'Up Next',
-    rating: 9.1,
-    synopsis:
-      'A narrative compass for reflective living—connecting decisions to values, and values to the kind of life you keep choosing.',
-    takeaways: [
-      'Write your rules of engagement, not your resolutions.',
-      'Your schedule is your ethics in motion.',
-      'Every “yes” deserves a matching “because”.'
-    ],
-  },
-  {
-    id: 'b3',
-    title: 'Signals & Solitude',
-    author: 'Jules Hart',
-    coverUrl:
-      'https://images.unsplash.com/photo-1455885666463-5f0a6b1d0e2a?auto=format&fit=crop&w=800&q=70',
-    status: 'Finished',
-    rating: 8.0,
-    synopsis:
-      'An exploration of modern noise and the surprising power of fewer inputs—how solitude can sharpen discernment and deepen presence.',
-    takeaways: [
-      'Reduce inputs to amplify meaning.',
-      'Silence is not absence; it’s signal processing.',
-      'Friendship with your own thoughts is a skill.'
-    ],
-  },
-  {
-    id: 'b4',
-    title: 'The Gentle Discipline',
-    author: 'Rina Alvarez',
-    coverUrl:
-      'https://images.unsplash.com/photo-1522718321417-0d79d3f6d6f6?auto=format&fit=crop&w=800&q=70',
-    status: 'Finished',
-    rating: 8.7,
-    synopsis:
-      'A compassionate system for consistency—turning intentions into rituals that survive bad days, travel, and uncertainty.',
-    takeaways: [
-      'Consistency loves kindness more than pressure.',
-      'Design your environment for your future self.',
-      'Rituals create momentum without drama.'
-    ],
-  },
-  {
-    id: 'b5',
-    title: 'Learning to Listen to Time',
-    author: 'E. Sato',
-    coverUrl:
-      'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=800&q=70',
-    status: 'Up Next',
-    rating: 7.9,
-    synopsis:
-      'A study of how we experience time—why some days expand and others collapse—and how to build rhythms that feel spacious.',
-    takeaways: [
-      'Time perception follows attention, not clocks.',
-      'Routines can be elastic, not rigid.',
-      'Meaning is often measured in pauses.'
-    ],
-  },
-  {
-    id: 'b6',
-    title: 'A Practice of Receiving',
-    author: 'Mira Donovan',
-    coverUrl:
-      'https://images.unsplash.com/photo-1473186578172-c141e6798cf4?auto=format&fit=crop&w=800&q=70',
-    status: 'Currently Reading',
-    progress: 42,
-    rating: 8.3,
-    synopsis:
-      'A gentle framework for appreciation and intake: receiving support, feedback, and beauty without turning them into performance.',
-    takeaways: [
-      'Receiving isn’t passive—it’s intentional.',
-      'Gratitude is a lens you can practice.',
-      'The body knows before the mind explains.'
-    ],
-  },
-];
-
-function statusBadgeClasses(status: BookStatus) {
-  switch (status) {
-    case 'Currently Reading':
-      return {
-        dot: 'bg-emerald-400',
-        ring: 'ring-emerald-500/20',
-        text: 'text-emerald-200',
-        bg: 'bg-emerald-500/10',
-      };
-    case 'Up Next':
-      return {
-        dot: 'bg-slate-300',
-        ring: 'ring-white/10',
-        text: 'text-slate-200',
-        bg: 'bg-white/5',
-      };
-    case 'Finished':
-    default:
-      return {
-        dot: 'bg-zinc-400',
-        ring: 'ring-zinc-500/20',
-        text: 'text-zinc-200',
-        bg: 'bg-zinc-500/10',
-      };
-  }
-}
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
+const READING_URL = 'https://ginni-ki-baatein-buddy.lovable.app';
 
 export default function ReadingPage() {
-  const [tab, setTab] = useState<TabKey>('All');
-  const [selected, setSelected] = useState<Book | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const filteredBooks = useMemo(() => {
-    if (tab === 'All') return booksSeed;
-    return booksSeed.filter((b) => b.status === tab);
-  }, [tab]);
+  useEffect(() => {
+    setIsLoaded(false);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white/0 via-white/0 to-transparent text-zinc-900 dark:text-zinc-100">
-      {/* subtle background */}
-      <div className="pointer-events-none fixed inset-0 -z-10 opacity-70">
-        <div className="absolute -top-32 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.25),transparent_60%)] blur-2xl" />
-        <div className="absolute top-[40%] left-[8%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.16),transparent_55%)] blur-2xl dark:opacity-80" />
-        <div className="absolute top-[10%] right-[6%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.12),transparent_58%)] blur-2xl dark:opacity-70" />
+    <div className="relative min-h-screen overflow-hidden bg-[#050508] text-zinc-100">
+      {/* Cosmic background (CSS-only) */}
+      <div className="pointer-events-none absolute inset-0">
+        {/* Base radial mesh */}
+        <div className="absolute left-1/2 top-1/3 h-[720px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(109,40,217,0.18),transparent_60%)] opacity-70 blur-2xl" />
+        <div className="absolute left-1/2 top-1/2 h-[820px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.22),transparent_62%)] animate-[pulse_10s_ease-in-out_infinite]" />
+
+        {/* Slow-pulsing center gradient */}
+        <div className="absolute left-1/2 top-1/2 h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.15),transparent_65%)] opacity-80 animate-[pulse_16s_ease-in-out_infinite]" />
+
+        {/* Stardust twinkle */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 10% 20%, rgba(255,255,255,0.8) 0 1px, transparent 2px), radial-gradient(circle at 35% 80%, rgba(255,255,255,0.7) 0 1px, transparent 2px), radial-gradient(circle at 70% 30%, rgba(255,255,255,0.8) 0 1px, transparent 2px), radial-gradient(circle at 90% 70%, rgba(255,255,255,0.6) 0 1px, transparent 2px), radial-gradient(circle at 55% 55%, rgba(255,255,255,0.7) 0 1px, transparent 2px)',
+            backgroundSize: '320px 320px',
+            animation: 'twinkle 9s ease-in-out infinite',
+          }}
+        />
+
+        {/* subtle vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.55)_70%,rgba(0,0,0,0.8)_100%)]" />
       </div>
 
-      <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        {/* Header */}
-        <header className="flex flex-col gap-3 sm:gap-4">
-          <div className="inline-flex items-center gap-3 rounded-full border border-zinc-200/70 bg-white/60 px-3 py-1 text-sm shadow-sm backdrop-blur dark:border-white/10 dark:bg-black/30">
-            <span className="inline-block h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_20px_rgba(234,179,8,0.55)]" />
-            <span className="font-medium text-zinc-700 dark:text-zinc-200">
-              Personal bookshelf
+      {/* Keyframes for background twinkle (kept local via inline <style>) */}
+      <style jsx>{`
+        @keyframes twinkle {
+          0% {
+            opacity: 0.05;
+            transform: translate3d(0, 0, 0);
+          }
+          50% {
+            opacity: 0.1;
+            transform: translate3d(0, -6px, 0);
+          }
+          100% {
+            opacity: 0.05;
+            transform: translate3d(0, 0, 0);
+          }
+        }
+        @keyframes glowSweep {
+          0% {
+            opacity: 0.25;
+            transform: translateX(-20%) rotate(12deg);
+          }
+          50% {
+            opacity: 0.55;
+            transform: translateX(20%) rotate(12deg);
+          }
+          100% {
+            opacity: 0.25;
+            transform: translateX(-20%) rotate(12deg);
+          }
+        }
+      `}</style>
+
+      <main className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        {/* Premium Back to Home */}
+        <div className="flex items-start justify-start">
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-black/20 px-4 py-2 text-sm text-amber-200 backdrop-blur transition-all duration-500 hover:scale-105 hover:border-amber-500/35 hover:bg-black/30"
+          >
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-500/10 text-amber-100 ring-1 ring-amber-500/20 transition-all duration-500 group-hover:shadow-[0_0_25px_rgba(234,179,8,0.35)]">
+              ←
             </span>
-          </div>
+            <span className="font-medium tracking-wide transition-transform duration-500 group-hover:-translate-x-0.5">Back to Home</span>
+          </Link>
+        </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight font-[family-name:serif]">
-            Shelf
-          </h1>
-          <p className="max-w-2xl text-base sm:text-lg leading-relaxed text-zinc-700 dark:text-zinc-300">
-            I read to collect patterns—small, luminous insights that compound into how I live.
-            Choose a book, then open its notes.
-          </p>
-        </header>
+        {/* Iframe container */}
+        <div className="relative mt-8 flex w-full items-center justify-center">
+          <div
+            className="relative w-full max-w-6xl overflow-hidden rounded-3xl border border-amber-500/20 bg-black/10 shadow-[0_0_50px_rgba(217,119,6,0.15),_0_0_100px_rgba(109,40,217,0.1)] backdrop-blur"
+          >
+            {/* Glow layers */}
+            <div className="pointer-events-none absolute -inset-[2px] rounded-[calc(1.5rem+2px)] bg-[radial-gradient(circle_at_50%_0%,rgba(217,119,6,0.20),transparent_50%),radial-gradient(circle_at_80%_40%,rgba(109,40,217,0.12),transparent_55%)] blur-2xl" />
 
-        {/* Tabs */}
-        <section className="mt-8">
-          <div className="flex flex-wrap items-center gap-3">
-            {(['All', 'Currently Reading', 'Up Next', 'Finished'] as TabKey[]).map((t) => {
-              const active = tab === t;
-              return (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={
-                    'group inline-flex items-center rounded-full border px-4 py-2 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 ' +
-                    (active
-                      ? 'border-amber-400/50 bg-amber-400/15 text-amber-900 dark:text-amber-200 shadow-[0_0_0_1px_rgba(234,179,8,0.10),0_10px_30px_rgba(234,179,8,0.08)]'
-                      : 'border-zinc-200/80 bg-white/40 text-zinc-700 hover:bg-white/70 dark:border-white/10 dark:bg-black/20 dark:text-zinc-200 dark:hover:bg-black/30')
-                  }
-                  aria-pressed={active}
-                >
-                  <span className="font-medium">
-                    {t === 'All' ? 'All' : t}
-                  </span>
-                  <span
-                    aria-hidden
-                    className={
-                      'ml-2 inline-flex h-2 w-2 rounded-full transition-all ' +
-                      (active
-                        ? 'bg-amber-400 shadow-[0_0_18px_rgba(234,179,8,0.55)] opacity-100'
-                        : 'bg-zinc-300 opacity-0 group-hover:opacity-60 dark:bg-zinc-500')
-                    }
-                  />
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Back link (kept, but style matches new UI) */}
-          <div className="mt-5 flex items-center justify-between gap-4">
-            <p className="text-sm text-zinc-600 dark:text-zinc-300">
-              Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredBooks.length}</span> books
-            </p>
-            <a
-              href="/"
-              className="inline-flex items-center rounded-full border border-zinc-200/70 bg-white/50 px-4 py-2 text-sm text-zinc-700 hover:bg-white/80 transition-all shadow-sm backdrop-blur dark:border-white/10 dark:bg-black/25 dark:text-zinc-200 dark:hover:bg-black/35"
-            >
-              ← Back to Home
-            </a>
-          </div>
-        </section>
-
-        {/* Grid */}
-        <section className="mt-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {filteredBooks.map((book) => {
-              const badge = statusBadgeClasses(book.status);
-              const progress = book.status === 'Currently Reading' ? clamp(book.progress ?? 0, 0, 100) : null;
-
-              return (
-                <article
-                  key={book.id}
-                  className={
-                    'group relative rounded-2xl border border-zinc-200/80 bg-white/60 dark:bg-black/25 dark:border-white/10 ' +
-                    'p-3 sm:p-4 overflow-hidden cursor-pointer select-none ' +
-                    'transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-amber-400/35 dark:hover:border-amber-300/30'
-                  }
-                  onClick={() => setSelected(book)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') setSelected(book);
-                  }}
-                  aria-label={`Open details for ${book.title}`}
-                >
-                  {/* Cover + status badge */}
-                  <div className="relative">
-                    <div
-                      className={
-                        'aspect-[2/3] w-full overflow-hidden rounded-xl bg-gradient-to-b from-zinc-100 to-zinc-50 dark:from-white/5 dark:to-black/10'
-                      }
-                    >
-                      <img
-                        src={book.coverUrl}
-                        alt={`${book.title} cover`}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    <div
-                      className={
-                        'absolute left-3 top-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs backdrop-blur ' +
-                        ' ' +
-                        `border-white/15 ${badge.ring} ${badge.bg}`
-                      }
-                    >
-                      <span
-                        className={
-                          'inline-block h-1.5 w-1.5 rounded-full shadow-[0_0_18px_rgba(0,0,0,0.2)] ' + badge.dot
-                        }
-                      />
-                      <span className={`font-medium ${badge.text}`}>{book.status}</span>
-                    </div>
-                  </div>
-
-                  {/* Meta */}
-                  <div className="mt-4 space-y-3">
-                    <div>
-                      <h3 className="font-[family-name:serif] text-zinc-900 dark:text-zinc-100 leading-snug text-base sm:text-lg">
-                        {book.title}
-                      </h3>
-                      <p className="mt-1 text-xs sm:text-sm font-mono text-zinc-600 dark:text-zinc-300">
-                        {book.author}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300">
-                        Rating
-                      </div>
-                      <div className="rounded-full border border-zinc-200/70 bg-white/40 px-3 py-1 text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {book.rating.toFixed(1)}/10
-                      </div>
-                    </div>
-
-                    {progress !== null && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-[11px] text-zinc-600 dark:text-zinc-300">
-                          <span className="font-medium">Progress</span>
-                          <span className="tabular-nums">{progress}%</span>
-                        </div>
-                        <div className="h-[3px] w-full rounded-full bg-zinc-200/70 dark:bg-white/10 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.35)] transition-all duration-500"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      </main>
-
-      {/* Drawer / modal */}
-      {selected && (
-        <div
-          className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Book details"
-        >
-          {/* Backdrop */}
-          <button
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
-            onClick={() => setSelected(null)}
-            aria-label="Close"
-          />
-
-          {/* Panel */}
-          <div className="relative w-full max-w-4xl">
-            <div className="rounded-t-3xl sm:rounded-3xl border border-zinc-200/70 bg-white/80 shadow-2xl backdrop-blur dark:border-white/10 dark:bg-black/50 overflow-hidden">
-              <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-zinc-200/60 dark:border-white/10">
-                <div>
-                  <div className="text-xs text-zinc-600 dark:text-zinc-300 font-medium">
-                    {selected.status}
-                  </div>
-                  <div className="text-xl sm:text-2xl font-[family-name:serif] text-zinc-900 dark:text-zinc-100">
-                    {selected.title}
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelected(null)}
-                  className="rounded-full border border-zinc-200/70 bg-white/60 px-3 py-1.5 text-sm text-zinc-800 hover:bg-white/80 transition-all dark:border-white/10 dark:bg-black/20 dark:text-zinc-100 dark:hover:bg-black/30"
-                >
-                  Close
-                </button>
+            {/* Corner accents */}
+            <div className="pointer-events-none absolute inset-0">
+              {/* top-left */}
+              <div className="absolute left-4 top-4 h-10 w-10">
+                <div className="absolute left-0 top-0 h-[1px] w-10 bg-amber-200/30" />
+                <div className="absolute left-0 top-0 h-10 w-[1px] bg-amber-200/30" />
+                <div className="absolute left-3 top-3 h-2 w-2 rounded-full bg-amber-300/70 shadow-[0_0_18px_rgba(234,179,8,0.35)]" />
               </div>
+              {/* top-right */}
+              <div className="absolute right-4 top-4 h-10 w-10">
+                <div className="absolute right-0 top-0 h-[1px] w-10 bg-purple-200/25" />
+                <div className="absolute right-0 top-0 h-10 w-[1px] bg-purple-200/25" />
+                <div className="absolute right-3 top-3 h-2 w-2 rounded-full bg-purple-300/60 shadow-[0_0_18px_rgba(109,40,217,0.35)]" />
+              </div>
+              {/* bottom-left */}
+              <div className="absolute left-4 bottom-4 h-10 w-10">
+                <div className="absolute left-0 bottom-0 h-[1px] w-10 bg-purple-200/25" />
+                <div className="absolute left-0 bottom-0 h-10 w-[1px] bg-purple-200/25" />
+                <div className="absolute left-3 bottom-3 h-2 w-2 rounded-full bg-purple-300/60 shadow-[0_0_18px_rgba(109,40,217,0.35)]" />
+              </div>
+              {/* bottom-right */}
+              <div className="absolute right-4 bottom-4 h-10 w-10">
+                <div className="absolute right-0 bottom-0 h-[1px] w-10 bg-amber-200/30" />
+                <div className="absolute right-0 bottom-0 h-10 w-[1px] bg-amber-200/30" />
+                <div className="absolute right-3 bottom-3 h-2 w-2 rounded-full bg-amber-300/70 shadow-[0_0_18px_rgba(234,179,8,0.35)]" />
+              </div>
+            </div>
 
-              <div className="p-4 sm:p-6">
-                <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6 items-start">
-                  <div className="">
-                    <div className="aspect-[2/3] overflow-hidden rounded-2xl bg-gradient-to-b from-zinc-100 to-zinc-50 dark:from-white/5 dark:to-black/10">
-                      <img
-                        src={selected.coverUrl}
-                        alt={`${selected.title} cover`}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
+            {/* Loading overlay */}
+            {!isLoaded && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
+                <div className="relative flex items-center justify-center">
+                  {/* Celestial ring system */}
+                  <div className="absolute h-[160px] w-[160px] rounded-full border border-amber-500/30 shadow-[0_0_60px_rgba(234,179,8,0.18)] animate-spin" />
+                  <div className="absolute h-[120px] w-[120px] rounded-full border border-purple-400/20 shadow-[0_0_60px_rgba(109,40,217,0.14)] opacity-80" style={{ animation: 'spin 3.2s linear infinite' }} />
+                  <div className="absolute h-[70px] w-[70px] rounded-full bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.45),transparent_65%)] blur-[2px] animate-[glowSweep_3s_ease-in-out_infinite]" />
 
-                    {selected.status === 'Currently Reading' && (
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-300">
-                          <span className="font-medium">Reading progress</span>
-                          <span className="tabular-nums">
-                            {clamp(selected.progress ?? 0, 0, 100)}%
-                          </span>
-                        </div>
-                        <div className="mt-2 h-[4px] w-full rounded-full bg-zinc-200/80 dark:bg-white/10 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.35)]"
-                            style={{ width: `${clamp(selected.progress ?? 0, 0, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-5">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="text-sm font-mono text-zinc-700 dark:text-zinc-300">
-                        {selected.author}
-                      </div>
-                      <div className="ml-auto rounded-full border border-zinc-200/70 bg-white/40 px-3 py-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        {selected.rating.toFixed(1)}/10
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        Quick Synopsis
-                      </div>
-                      <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-                        {selected.synopsis}
-                      </p>
-                    </div>
-
-                    <div>
-                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                        Golden Nuances &amp; Takeaways
-                      </div>
-                      <ul className="mt-3 space-y-2">
-                        {selected.takeaways.map((t, idx) => (
-                          <li
-                            key={`${selected.id}-t-${idx}`}
-                            className="flex gap-3 items-start text-sm text-zinc-700 dark:text-zinc-300"
-                          >
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_18px_rgba(234,179,8,0.55)]" />
-                            <span className="leading-relaxed">{t}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="pt-1">
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Tip: connect this UI to your database/API by replacing <span className="font-mono">booksSeed</span>.
-                      </div>
+                  {/* Center core */}
+                  <div className="relative z-10 flex flex-col items-center gap-3">
+                    <div className="h-3 w-3 rounded-full bg-amber-300 shadow-[0_0_24px_rgba(234,179,8,0.55)] animate-[pulse_1.6s_ease-in-out_infinite]" />
+                    <div className="text-center text-sm text-amber-100/90">
+                      <span className="inline-block rounded-full border border-amber-500/20 bg-black/20 px-3 py-1 backdrop-blur">
+                        Tuning the mirror…
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Responsive iframe box */}
+            <div className="relative w-[90%] sm:w-[92%] h-[70vh] sm:h-[78vh] md:h-[82vh]">
+              <iframe
+                src={READING_URL}
+                title="Tarot Reading Buddy"
+                className="h-full w-full border-0 rounded-3xl"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                allowFullScreen
+                allow="autoplay; clipboard-write; microphone; camera"
+                sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
+                onLoad={() => setIsLoaded(true)}
+              />
             </div>
           </div>
         </div>
-      )}
+      </main>
+
+      {/* Ambient bottom haze */}
+      <div className="pointer-events-none absolute bottom-[-120px] left-1/2 h-[320px] w-[720px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.18),transparent_60%)] blur-3xl" />
     </div>
   );
 }
