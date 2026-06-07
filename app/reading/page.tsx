@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 const READING_URL = "https://ginni-ki-baatein-buddy.lovable.app";
@@ -85,28 +84,11 @@ export default function ReadingPage() {
         `}</style>
       </div>
 
-      <main className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10 min-h-screen flex flex-col">
-        {/* Luxury navigation link */}
-        <div className="flex items-start justify-start">
-          <Link
-            href="/"
-            className="group inline-flex items-center gap-3 rounded-full border border-amber-500/10 bg-black/20 px-4 py-2 text-sm backdrop-blur transition-all duration-500 hover:bg-black/30"
-          >
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-500/15 bg-[rgba(0,0,0,0.18)] text-amber-100/95 shadow-[0_0_30px_rgba(234,179,8,0.12)] transition-all duration-500 group-hover:border-amber-500/35 group-hover:shadow-[0_0_44px_rgba(234,179,8,0.25)]">
-              <span className="font-serif text-amber-100/95 text-lg leading-none">←</span>
-            </span>
-
-            <span className="font-heading font-serif text-amber-100/95 tracking-wide transition-transform duration-500 group-hover:translate-x-0.5">
-              Back to Home
-            </span>
-
-            <span className="pointer-events-none ml-1 h-1.5 w-1.5 rounded-full bg-amber-400/70 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-          </Link>
-        </div>
-
+      <main className="relative mx-auto w-full max-w-7xl px-0 py-0 min-h-screen flex flex-col">
         {/* Iframe container */}
-        <div className="relative flex flex-1 items-stretch justify-center w-full mt-4">
-          <div className="relative w-full max-w-6xl rounded-2xl border border-amber-500/10 bg-black/10 backdrop-blur shadow-[0_0_70px_rgba(109,40,217,0.18)] overflow-hidden">
+        <div className="relative w-full h-[90vh] flex items-stretch justify-center overflow-hidden">
+          <div className="relative chatbot-parent-container w-full h-full rounded-none border-none bg-black/10 backdrop-blur shadow-[0_0_70px_rgba(109,40,217,0.18)] overflow-hidden">
+
             {/* Ambient glows stacked: amber halo over broader purple aura */}
             <div className="pointer-events-none absolute -inset-0.5 rounded-2xl">
               <div className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_0%,rgba(234,179,8,0.22)_0%,transparent_55%)] blur-2xl opacity-70" />
@@ -302,11 +284,12 @@ export default function ReadingPage() {
             )}
 
             {/* Iframe (config preserved) */}
-            <div className="relative w-full h-[70vh] min-h-[520px]">
+            <div className="relative w-full h-full">
               <iframe
                 src={READING_URL}
                 title="Tarot Reading Buddy"
-                className="h-full w-full border-0 rounded-2xl"
+                className="h-full w-full border-0 rounded-none"
+
                 loading="lazy"
                 referrerPolicy="no-referrer"
                 allowFullScreen
