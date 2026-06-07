@@ -86,7 +86,7 @@ export default function ReadingPage() {
 
       <main className="relative mx-auto w-full max-w-7xl px-0 py-0 min-h-screen flex flex-col items-center justify-center">
         {/* 90vw x 90vh chat wrapper (must fill exactly) */}
-        <div id="reading-chat-wrapper" className="relative w-[90vw] h-[90vh] flex items-stretch justify-center overflow-hidden">
+        <div id="reading-chat-wrapper" className="relative w-[90vw] h-[80vh] flex items-stretch justify-center overflow-hidden">
           <div className="relative chatbot-parent-container w-full h-full rounded-none border-none bg-black/10 backdrop-blur shadow-[0_0_70px_rgba(109,40,217,0.18)] overflow-hidden">
             {/* Inline style tag (no styled-jsx to avoid build tooling issues) */}
             <style>{`
