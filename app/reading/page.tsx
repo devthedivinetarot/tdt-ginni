@@ -92,8 +92,8 @@ export default function ReadingPage() {
             <style>{`
               #reading-chat-iframe {
                 display: block !important;
-                width: 100% !important;
-                height: 100% !important;
+                width: 90vw !important;
+                height: 80vh !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 border: 0 !important;
