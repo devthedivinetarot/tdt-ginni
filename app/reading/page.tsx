@@ -84,10 +84,30 @@ export default function ReadingPage() {
         `}</style>
       </div>
 
-      <main className="relative mx-auto w-full max-w-7xl px-0 py-0 min-h-screen flex flex-col">
-        {/* Iframe container */}
-        <div className="relative w-full h-[90vh] flex items-stretch justify-center overflow-hidden">
+      <main className="relative mx-auto w-full max-w-7xl px-0 py-0 min-h-screen flex flex-col items-center justify-center">
+        {/* 90vw x 90vh chat wrapper (must fill exactly) */}
+        <div id="reading-chat-wrapper" className="relative w-[90vw] h-[90vh] flex items-stretch justify-center overflow-hidden">
           <div className="relative chatbot-parent-container w-full h-full rounded-none border-none bg-black/10 backdrop-blur shadow-[0_0_70px_rgba(109,40,217,0.18)] overflow-hidden">
+            <style jsx global>{`
+              /* High-specificity override to avoid global layout/iframe defaults */
+              #reading-chat-iframe {
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                outline: none !important;
+                box-sizing: border-box !important;
+              }
+              /* Ensure wrapper padding/margins never sneak in */
+              #reading-chat-wrapper,
+              #reading-chat-wrapper * {
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+              }
+            `}</style>
 
             {/* Ambient glows stacked: amber halo over broader purple aura */}
             <div className="pointer-events-none absolute -inset-0.5 rounded-2xl">
@@ -286,10 +306,10 @@ export default function ReadingPage() {
             {/* Iframe (config preserved) */}
             <div className="relative w-full h-full">
               <iframe
+                id="reading-chat-iframe"
                 src={READING_URL}
-                title="Tarot Reading Buddy"
+                title="Ginni Ki Baatein — Your Tarot Bestie 🌙"
                 className="h-full w-full border-0 rounded-none"
-
                 loading="lazy"
                 referrerPolicy="no-referrer"
                 allowFullScreen

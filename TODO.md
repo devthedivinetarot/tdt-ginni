@@ -1,15 +1,7 @@
-# TODO - /reading page refactor
+# TODO
 
-- [ ] Confirm current `/reading/page.tsx` implementation details
-- [ ] Implement explicit layout constraints:
-  - [ ] No footer on this route (avoid `ClientLayout` footer)
-  - [ ] Page container max height exactly `h-[90vh]` and centered
-- [ ] Implement premium styling:
-  - [ ] Deep minimalist background `bg-[#0a0a0a]`
-  - [ ] Back to Home button styling per spec (border/text yellow, gold glow, rounded-full)
-- [ ] Implement iframe constraints:
-  - [ ] Wrap iframe in `w-[90%] h-[90%]` relative to parent section
-  - [ ] Add rounded-2xl, overflow-hidden, gold/yellow shadow aura
-- [ ] Verify Tailwind classes compile
-- [ ] (Optional) Run lint/tests/build if available
+- [ ] Update `app/reading/page.tsx` so the chat iframe sits in a parent wrapper sized to exactly 90vw x 90vh and centered.
+- [ ] Ensure wrapper/iframe have no internal padding/margins and fill the wrapper exactly (iframe uses width/height 100% and display:block).
+- [x] Add a CSS override (high specificity) in inline `app/reading/page.tsx` to strip iframe default borders/spacing and neutralize any global styles that might add margins/padding.
 
+`
