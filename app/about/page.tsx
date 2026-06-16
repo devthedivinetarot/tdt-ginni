@@ -296,7 +296,7 @@ export default function AboutPage() {
                 <div className="w-full h-full min-h-[320px] flex items-end justify-center">
                   <div className="w-full h-full flex items-center justify-center px-6">
                     <div className="w-full h-[520px] max-h-[70vh] rounded-3xl overflow-hidden border border-gold/10 bg-[linear-gradient(135deg,rgba(244,197,66,0.08),rgba(124,58,237,0.08))]">
-                      <div className="w-full h-full bg-[url('/img-01.png')] bg-cover bg-center opacity-85" />
+                      <div className="w-full h-full bg-[url('/img-02.png')] bg-cover bg-center opacity-85" />
                       <div className="absolute inset-0 bg-black/55" />
                       <div className="relative p-8 text-center">
                         <p className="font-serif text-foreground/90 text-lg">
