@@ -274,7 +274,7 @@ export default function AboutPage() {
                 <p className="text-foreground-secondary text-center text-lg">
                   {isHydrated
                     ? t('about.redesigned.differentiator.p2')
-                    : 'Every reading is a sacred conversation, not a template. Your energy is unique; your guidance should be too.'}
+                    // : 'Every reading is a sacred conversation, not a template. Your energy is unique; your guidance should be too.'}
                 </p>
               </div>
             </div>
@@ -300,7 +300,7 @@ export default function AboutPage() {
                       <div className="absolute inset-0 bg-black/55" />
                       <div className="relative p-8 text-center">
                         <p className="font-serif text-foreground/90 text-lg">
-                          {/** No extra copy per spec; purely visual placeholder */}
+                          {'Every reading is a sacred conversation, not a template. Your energy is unique; your guidance should be too.'}
                         </p>
                       </div>
                     </div>
