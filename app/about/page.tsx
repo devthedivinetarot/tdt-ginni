@@ -274,8 +274,9 @@ export default function AboutPage() {
                 <p className="text-foreground-secondary text-center text-lg">
                   {isHydrated
                     ? t('about.redesigned.differentiator.p2')
-                    // : 'Every reading is a sacred conversation, not a template. Your energy is unique; your guidance should be too.'}
+                    : 'Every reading is a sacred conversation, not a template. Your energy is unique; your guidance should be too.'}
                 </p>
+
               </div>
             </div>
 
