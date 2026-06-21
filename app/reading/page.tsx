@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-const READING_URL = "https://ginni-ki-baatein-buddy.lovable.app";
+const READING_URL = "https://tdt-ginni-1.vercel.app/";
 
 export default function ReadingPage() {
   const [isLoaded, setIsLoaded] = useState(false);
