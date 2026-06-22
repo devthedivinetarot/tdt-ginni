@@ -20,7 +20,7 @@ interface GinniChatProps {
   onClose?: () => void;
 }
 
-const GINNI_BASE_URL = 'https://ginni-ki-baatein-buddy.lovable.app';
+const GINNI_BASE_URL = 'https://tdt-ginni-1.vercel.app/';
 
 export default function GinniChat({ 
   autoOpenDelay = 0, 
@@ -170,6 +170,7 @@ export default function GinniChat({
                 </div>
                 <button
                   onClick={handleClose}
+                  aria-label="Close chat"
                   className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 flex items-center justify-center transition-all"
                 >
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

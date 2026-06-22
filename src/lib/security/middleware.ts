@@ -125,11 +125,15 @@ export const securityHeadersMiddleware: NextMiddleware = async (req: NextRequest
       + ` ${process.env.NEXT_PUBLIC_SUPABASE_URL || ''}`
       + " https://*.supabase.co"
       + " https://api.openai.com"
-      + " https://api.razorpay.com",
+      + " https://api.razorpay.com"
+      + " https://*.ingest.us.sentry.io"
+      + " https://*.ingest.sentry.io",
     "frame-src https://ginni-ki-baatein-buddy.lovable.app"
       + " https://ginnitdt.lovable.app"
+      + " https://tdt-ginni-1.vercel.app"
       + " https://checkout.razorpay.com"
       + " https://securecdn.razorpay.com",
+    "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

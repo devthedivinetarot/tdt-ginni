@@ -1,8 +1,9 @@
-import * as Sentry from '@sentry/nextjs';
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN || '',
-  tracesSampleRate: 1,
-  debug: false,
-  enabled: !!process.env.SENTRY_DSN,
-});
+// Client-side Sentry initialization has moved to `instrumentation-client.ts`,
+// which is the canonical location for the Next.js Sentry SDK.
+//
+// Calling `Sentry.init()` here as well caused the
+// "You are calling Sentry.init() more than once on the client" warning,
+// so this file intentionally no longer initializes Sentry.
+//
+// See: https://docs.sentry.io/platforms/javascript/guides/nextjs/
+export {};
