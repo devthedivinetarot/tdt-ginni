@@ -22,7 +22,7 @@ export default function ReadingPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#050508] text-zinc-100">
+    <div className="relative h-full overflow-hidden bg-[#050508] text-zinc-100">
       {/*
         Ethereal background atmosphere:
         - subtle drifting stardust particles at ~5% opacity
@@ -84,7 +84,7 @@ export default function ReadingPage() {
         `}</style>
       </div>
 
-      <main className="relative mx-auto w-full max-w-7xl px-0 py-0 min-h-screen flex flex-col items-center justify-center">
+      <main className="relative mx-auto w-full max-w-7xl px-0 py-0 h-full flex flex-col items-center justify-center">
         {/* 90vw x 90vh chat wrapper (must fill exactly) */}
         <div id="reading-chat-wrapper" className="relative w-[100vw] h-[80vh] flex items-stretch justify-center overflow-hidden">
           <div className="relative chatbot-parent-container w-full h-full rounded-none border-none bg-black/10 backdrop-blur shadow-[0_0_70px_rgba(109,40,217,0.18)] overflow-hidden">
