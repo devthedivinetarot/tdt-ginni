@@ -15,8 +15,11 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: 'en',
     dir: 'ltr',
     categories: ['lifestyle', 'entertainment', 'spirituality'],
+    // NOTE: favicon.ico is intentionally NOT listed here. Declaring a raster
+    // .ico with sizes:'any' triggers Chrome's "Resource size is not correct"
+    // manifest warning. The .ico is still served as the browser-tab favicon
+    // via Next's file-based metadata, independent of this manifest.
     icons: [
-      { src: '/favicon.ico', sizes: 'any', type: 'image/x-icon' },
       { src: '/logo.png', sizes: '426x500', type: 'image/png', purpose: 'any' },
     ],
   };

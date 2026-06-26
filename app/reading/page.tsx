@@ -314,7 +314,7 @@ export default function ReadingPage() {
                 loading="lazy"
                 referrerPolicy="no-referrer"
                 allowFullScreen
-                allow="autoplay; clipboard-write; microphone; camera"
+                allow="autoplay; clipboard-write; microphone; camera; accelerometer; gyroscope; magnetometer; payment"
                 sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
                 onLoad={() => setIsLoaded(true)}
               />
