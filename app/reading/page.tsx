@@ -1,14 +1,40 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import PremiumUpgradeModal from "@/components/PremiumUpgradeModal";
 
 const READING_URL = "https://chat.thedivinetarotonline.com/";
 
-export default function ReadingPage() {
+function ReadingPageInner() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   useEffect(() => {
     setIsLoaded(false);
+  }, []);
+
+  // Open the subscription modal when premium buttons route here with ?upgrade=1.
+  // Using searchParams (not a mount-only check) also covers clicking a premium
+  // link while already on /reading, where the page doesn't remount.
+  useEffect(() => {
+    if (searchParams.get("upgrade") === "1") {
+      setShowUpgrade(true);
+      // Strip the param so refresh / back doesn't re-open the modal.
+      router.replace(pathname, { scroll: false });
+    }
+  }, [searchParams, router, pathname]);
+
+  // Also support the legacy `openPremiumModal` event dispatched elsewhere.
+  useEffect(() => {
+    const handleOpenPremiumModal = () => setShowUpgrade(true);
+    window.addEventListener("openPremiumModal", handleOpenPremiumModal);
+    return () => {
+      window.removeEventListener("openPremiumModal", handleOpenPremiumModal);
+    };
   }, []);
 
   // Keep the particles layer deterministic without depending on JS.
@@ -325,7 +351,22 @@ export default function ReadingPage() {
 
       {/* Ambient bottom haze */}
       <div aria-hidden className="pointer-events-none absolute bottom-[-140px] left-1/2 h-[360px] w-[760px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(234,179,8,0.16),transparent_60%)] blur-3xl" />
+
+      {/* Subscription modal launched by premium buttons across the site */}
+      <PremiumUpgradeModal
+        isOpen={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+      />
     </div>
+  );
+}
+
+export default function ReadingPage() {
+  // useSearchParams requires a Suspense boundary in the App Router.
+  return (
+    <Suspense fallback={null}>
+      <ReadingPageInner />
+    </Suspense>
   );
 }
 

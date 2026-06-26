@@ -120,7 +120,7 @@ const Footer = () => {
             {[
               { nameKey: 'footer.quickLinks.about', name: 'About', href: '/about' },
               { nameKey: 'footer.quickLinks.readings', name: 'Readings', href: '/reading' },
-              { nameKey: 'footer.quickLinks.premium', name: 'Premium', href: '/premium' },
+              { nameKey: 'footer.quickLinks.premium', name: 'Premium', href: '/reading?upgrade=1' },
               { nameKey: 'footer.quickLinks.contact', name: 'Contact', href: '/contact' },
             ].map((link) => (
               <li key={link.name}>

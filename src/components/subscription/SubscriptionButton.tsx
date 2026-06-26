@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Crown } from 'lucide-react';
 import { useUser } from '@/lib/auth/useUser';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -16,10 +17,9 @@ export default function SubscriptionButton({
   size = 'md',
   className = '',
 }: SubscriptionButtonProps) {
+  const router = useRouter();
   const { isLoading: userLoading } = useUser();
-  const { isPremium, refetch } = useSubscription();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { isPremium } = useSubscription();
 
   const getButtonStyles = useCallback(() => {
     const baseStyles = 'rounded-xl font-semibold transition-all duration-300 ';
@@ -39,44 +39,20 @@ export default function SubscriptionButton({
     }
   }, [size]);
 
-  const handleClick = useCallback(async () => {
-    if (isProcessing || isPremium) return;
-
-    setIsProcessing(true);
-    setError(null);
-
-    try {
-      const { handlePremiumCheckout } = await import('@/lib/payments/handlePremiumCheckout');
-      
-      const result = await handlePremiumCheckout('subscription-button');
-
-      if (result.success) {
-        await refetch();
-      } else if (result.error !== 'Payment cancelled') {
-        setError(result.error || 'Payment failed');
-        setIsProcessing(false);
-      } else {
-        setIsProcessing(false);
-      }
-    } catch (err: any) {
-      console.error('[SubscriptionButton] Payment error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
-      setIsProcessing(false);
-    }
-  }, [isProcessing, isPremium, refetch]);
+  const handleClick = useCallback(() => {
+    if (isPremium) return;
+    // All premium buttons route to the reading page, which auto-opens the
+    // subscription modal (PremiumUpgradeModal) via the ?upgrade=1 param.
+    router.push('/reading?upgrade=1');
+  }, [isPremium, router]);
 
   return (
     <button
       onClick={handleClick}
-      disabled={isProcessing || isPremium || userLoading}
+      disabled={isPremium || userLoading}
       className={`${getButtonStyles()} ${getSizeStyles()} ${className} w-full`}
     >
-      {isProcessing ? (
-        <>
-          <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin mr-2" />
-          Processing...
-        </>
-      ) : isPremium ? (
+      {isPremium ? (
         <>
           <span className="mr-2">✓</span> Active Premium
         </>
